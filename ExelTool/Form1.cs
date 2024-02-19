@@ -2,42 +2,63 @@
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-//using Excel = Microsoft.Office.Interop.Excel;
+using System.Linq;
 
 namespace ExelTool
 {
     public partial class Form1 : Form
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        public Form1() => InitializeComponent();
+        private string CurrentPath { get; set; } //TODO
+        private string Extension => ".csv"; // TODO?
 
         private void OnClickTestButton(object sender, EventArgs e)
         {
-            var opd = new OpenFileDialog();
+            var opd = new FolderBrowserDialog();
             opd.ShowDialog(this);
-            Console.WriteLine(opd.FileName);
-            var ext = Path.GetExtension(opd.FileName);
-            if (ext == ".csv")
+            CurrentPath = opd.SelectedPath;
+            foreach (var line in ReadCorpCard())
             {
-                using (var reader = new StreamReader(opd.FileName, Encoding.Default, true))
-                {
-                    while (reader.EndOfStream == false)
-                    {
-                        var line = reader.ReadLine();
-                        Console.WriteLine(line);
-                    }
-                }
+                Console.WriteLine(line);
             }
-            else
+        }
+
+        private T[] Read<T>(string fileName, Func<string[], T> selector)
+        {
+            var fullPath = Path.Combine(CurrentPath, fileName + Extension);
+            try
             {
-                Console.WriteLine(ext);
+                return File.ReadAllLines(fullPath, Encoding.Default).Select(_ => _.Split(',')).Select(selector).ToArray();
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception.ToString());
             }
 
-            //var app = new Excel.Application();
-            //var opened = app.Workbooks.Open(opd.FileName);
-            //Console.WriteLine(opened);
+            return default;
+        }
+
+        private (string Alias, string Adress, DateTime Start, DateTime End)[] ReadAdress() => Read("address", SelectAdress);
+        private (string Alias, string Adress, DateTime Start, DateTime End) SelectAdress(string[] _) => (_[1], _[2], DateTime.Parse(_[3]), DateTime.Parse(_[4]));
+
+        private object[] ReadCorpCard() => Read("corpcard", SelectCorpCard);
+        private object SelectCorpCard(string[] _) => (DateTime.Parse(_[1]), _[2]);
+
+        private object[] ReadOOO() => Read("ooo", SelectOOO);
+        private object SelectOOO(string[] _) => (_[0], DateTime.Parse(_[1]));
+        private (DateTime Date, float Ratio)[] ReadPto() => Read("pto", SelectPto);
+        private (DateTime Date, float Ratio) SelectPto(string[] _) => (DateTime.Parse(_[0]), float.Parse(_[1]));
+
+        private (DateTime Start, DateTime End) ReadWorkFromHome(string[] _)
+        {
+            var start = DateTime.Parse(_[0]);
+
+            if (DateTime.TryParse(_[1], out var end) == false)
+            {
+                end = start;
+            }
+
+            return (start, end);
         }
     }
 }
