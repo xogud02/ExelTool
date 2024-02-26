@@ -17,7 +17,7 @@ namespace ExelTool
             var opd = new FolderBrowserDialog();
             opd.ShowDialog(this);
             CurrentPath = opd.SelectedPath;
-            foreach (var line in ReadCorpCard())
+            foreach (var line in ReadOOO())
             {
                 Console.WriteLine(line);
             }
@@ -41,11 +41,11 @@ namespace ExelTool
         private (string Alias, string Adress, DateTime Start, DateTime End)[] ReadAdress() => Read("address", SelectAdress);
         private (string Alias, string Adress, DateTime Start, DateTime End) SelectAdress(string[] _) => (_[1], _[2], DateTime.Parse(_[3]), DateTime.Parse(_[4]));
 
-        private object[] ReadCorpCard() => Read("corpcard", SelectCorpCard);
-        private object SelectCorpCard(string[] _) => (DateTime.Parse(_[1]), _[2]);
+        private (DateTime Date, string Place)[] ReadCorpCard() => Read("corpcard", SelectCorpCard);
+        private (DateTime Date, string Place) SelectCorpCard(string[] _) => (DateTime.Parse(_[1]), _[2]);
 
-        private object[] ReadOOO() => Read("ooo", SelectOOO);
-        private object SelectOOO(string[] _) => (_[0], DateTime.Parse(_[1]));
+        private (string Place, DateTime Date)[] ReadOOO() => Read("ooo", SelectOOO);
+        private (string Place, DateTime Date) SelectOOO(string[] _) => (_[0], DateTime.Parse(_[1]));
         private (DateTime Date, float Ratio)[] ReadPto() => Read("pto", SelectPto);
         private (DateTime Date, float Ratio) SelectPto(string[] _) => (DateTime.Parse(_[0]), float.Parse(_[1]));
 
